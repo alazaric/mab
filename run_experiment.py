@@ -1,14 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from UCB import UCB
+from ucb import UCB
 from Algorithm import Algorithm
 from Experiment import Experiment
-from Bernoulli import Bernoulli
+from bernoulli import Bernoulli
 from Environment import Environment
 from StructType import StructType
 from Result import Result
 import typing as tp
+from omegaconf import DictConfig, OmegaConf
+import hydra
 
 import wandb
 
@@ -25,9 +27,9 @@ def execute(exp: Experiment,
     n_steps = exp.n_steps
 
     for t in range(n_steps):
-        if t % 100 == 0:
-            print("Time step %d" % t)
-            print(alg.__str__())
+        # if t % 100 == 0:
+        #     print("Time step %d" % t)
+        #     print(alg.__str__())
 
         # retrieve the arm the should be pulled
         arm_to_pull = alg.get_action(t)
@@ -45,48 +47,37 @@ def execute(exp: Experiment,
 
     return res
 
+@hydra.main(version_base=None, config_path="./config", config_name="config")
+def main(cfg: DictConfig) -> None:
 
-# set up the backend for the plot
-plt.rcdefaults()
+    # print config file
+    # print(OmegaConf.to_yaml(cfg))
 
-# initialize W&B
-wandb.init(
-    project="MAB Project",
-    notes="First single run experiment",
-    tags=["first attempt", "ucb", "2arms"]
-    )
+    # construct the arms and build the corresponding environment
+    env = Environment([hydra.utils.instantiate(arm) for arm in cfg.environment.arms])
+    # print("### Environment\n" + str(env))
 
-# construct the arms and build the corresponding environment
-env = Environment([Bernoulli(p) for p in [0.7, 0.3]])
-n_arms = env.n_arms
-print("### Environment\n" + str(env))
+    # prepare the algorithm
+    alg = hydra.utils.instantiate(cfg.algorithm, n_arms=env.n_arms)
+    # print("### Algorithm\n" + str(alg))
 
-# prepare the algorithm
-ucb_params = StructType()
-ucb_params.scaling = 1.0
-alg = UCB(n_arms, ucb_params)
-print("### Algorithm\n" + str(alg))
+    # prepare the experiment
+    exp = Experiment(cfg.experiment.n_steps)
 
-# prepare the experiment
-exp = Experiment(1000)
+    # initialize W&B
+    wandb.init(
+        project="MAB Project",
+        group=f"{cfg.environment.name} - {cfg.algorithm._target_}",
+        name=" ".join(map(str,list(cfg.algorithm.values()))),
+        config=OmegaConf.to_container(cfg, resolve=True, throw_on_missing=False)
+        )
 
-# execute the experiment and collect the results
-res = execute(exp, env, alg)  # type : Result
+    # execute the experiment
+    execute(exp, env, alg)
 
-# compute statistics
-stats = res.compute_statistics()
-
-# plot a chart with the cumulative regret
-cum_exp_regret = np.cumsum(stats.exp_regret)
-# print(cum_exp_regret)
-
-plt.plot(np.arange(exp.n_steps), cum_exp_regret, linewidth=2.5, linestyle="-")
-plt.legend(loc='upper left', frameon=False)
-plt.xlabel("steps")
-plt.ylabel("cumulative regret")
+    # finish W&B run
+    wandb.finish()
 
 
-plt.savefig("exercice_2.png",dpi=72)
-plt.show()
-
-
+if __name__ == '__main__':
+    main()

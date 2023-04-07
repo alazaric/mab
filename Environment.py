@@ -1,16 +1,19 @@
 '''
 This class contains the list of all arms and simulate pulls
 '''
-
+import typing as tp
+from Arm import Arm
 
 class Environment:
 
-    def __init__(self, arms):
+    def __init__(self, 
+                 arms: tp.List[Arm]):
         self.arms = arms
         self.n_arms = len(arms)
 
-    def pull_arm(self, arm):
-        return self.arms[arm].draw()
+    def pull_arm(self, 
+                 arm_idx: int):
+        return self.arms[arm_idx].draw()
 
     def __str__(self):
         out = "Number of arms: " + str(self.n_arms) + "\n"

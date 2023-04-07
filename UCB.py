@@ -1,14 +1,18 @@
 '''
 UCB bandit strategy
 '''
+from omegaconf import DictConfig
 from Algorithm import *
 import numpy as np
 import typing as tp
+
 np.seterr(divide='ignore', invalid='ignore')
 
 class UCB(Algorithm):
 
-    def __init__(self, n_arms, parameters):
+    def __init__(self, 
+                 n_arms: int, 
+                 scaling: float):
         super().__init__(n_arms)
 
         # number of pulls per arm
@@ -24,7 +28,7 @@ class UCB(Algorithm):
         self.conf_interval = np.ones(n_arms, np.float64) * np.inf
 
         # scaling parameter for confidence intervals
-        self.scaling = parameters.scaling
+        self.scaling = scaling
 
     def get_action(self, 
                    t: int) -> int:
@@ -62,6 +66,7 @@ class UCB(Algorithm):
             metrics[f"avg_reward_arm{i}"] = self.avg_reward[i]
             metrics[f"n_pulls{i}"] = self.n_pulls[i]
             metrics[f"conf_interval{i}"] = self.conf_interval[i]
+            metrics[f"ucb_score{i}"] = self.avg_reward[i] + self.scaling * self.conf_interval[i]
         return metrics
 
     def get_pulls(self) -> np.ndarray:
