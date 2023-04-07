@@ -1,0 +1,4 @@
+name: "bernoulli_easy"
+arms:
+  - {_target_: "bernoulli.Bernoulli", mean: 0.9}
+  - {_target_: "bernoulli.Bernoulli", mean: 0.5}

@@ -1,0 +1,12 @@
+# defaults:
+#   - override hydra/launcher: joblib
+  
+defaults:
+  - experiment: default_experiment
+  - environment: bernoulli_easy
+  - algorithm: ucb
+
+hydra:
+  sweeper:
+    params:
+      environment: bernoulli_easy,bernoulli_hard
