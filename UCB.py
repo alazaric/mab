@@ -3,8 +3,8 @@ UCB bandit strategy
 '''
 from Algorithm import *
 import numpy as np
+import typing as tp
 np.seterr(divide='ignore', invalid='ignore')
-
 
 class UCB(Algorithm):
 
@@ -17,36 +17,54 @@ class UCB(Algorithm):
         # cumulative reward per arm
         self.cum_rew = np.zeros(n_arms, np.float64)
 
+        # average reward per arm
+        self.avg_rew = np.zeros(n_arms, np.float64)
+
+        # confidence intervals per arm
+        self.conf_interval = np.ones(n_arms, np.float64) * np.inf
+
         # scaling parameter for confidence intervals
         self.scaling = parameters.scaling
 
-    def get_action(self, t):
+    def get_action(self, 
+                   t: int) -> int:
 
         if t <= self.n_arms:
             # perform round robin over arms in the first self.n_arms steps
             best_arm = t % self.n_arms
         else:
-            # compute the average reward
-            avg_reward = self.cum_rew / self.n_pulls
-
-            # compute the uncertainty
-            conf = self.scaling * np.sqrt(np.log(t+1) / self.n_pulls)
-
             # compute arms indices
-            score = avg_reward + conf
+            ucb_score = self.avg_reward + self.scaling * self.conf_interval
 
             # find the arm(s) with the largest score and select one at random
-            best_arms = np.argwhere(score == np.amax(score))
+            best_arms = np.argwhere(ucb_score == np.amax(ucb_score))
             best_arm = np.random.choice(best_arms.flatten(), 1)[0]
 
         # return the arm with the largest score
         return best_arm
 
-    def update(self, t, arm, reward):
+    def update(self, 
+               t: int, 
+               arm: int, 
+               reward: float) -> tp.Dict[str, float]:
+        metrics: tp.Dict[str, float] = {}
+
+        # increment the cumulative reward and number of pulls for the observed arm
         self.cum_rew[arm] += reward
         self.n_pulls[arm] += 1
 
-    def get_pulls(self):
+        # recompute the average reward and confidence interval for all arms
+        self.avg_reward = self.cum_rew / self.n_pulls
+        self.conf_interval = np.sqrt(np.log(t+1) / self.n_pulls)
+
+        # returns internal variables for logging purposes
+        for i in range(self.n_arms):
+            metrics[f"avg_reward_arm{i}"] = self.avg_reward[i]
+            metrics[f"n_pulls{i}"] = self.n_pulls[i]
+            metrics[f"conf_interval{i}"] = self.conf_interval[i]
+        return metrics
+
+    def get_pulls(self) -> np.ndarray:
         return self.n_pulls
 
     def __str__(self):
