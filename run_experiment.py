@@ -51,7 +51,7 @@ def execute(exp: Experiment,
 def main(cfg: DictConfig) -> None:
 
     # print config file
-    # print(OmegaConf.to_yaml(cfg))
+    print(OmegaConf.to_yaml(cfg))
 
     # construct the arms and build the corresponding environment
     env = Environment([hydra.utils.instantiate(arm) for arm in cfg.environment.arms])
@@ -65,10 +65,12 @@ def main(cfg: DictConfig) -> None:
     exp = Experiment(cfg.experiment.n_steps)
 
     # initialize W&B
+    name = cfg.environment.name + " "
+    name.join(map(str,list(cfg.algorithm.values())))
     wandb.init(
         project="MAB Project",
-        group=f"{cfg.environment.name} - {cfg.algorithm._target_}",
-        name=" ".join(map(str,list(cfg.algorithm.values()))),
+        group=f"{cfg.environment.name}",
+        name=name,
         config=OmegaConf.to_container(cfg, resolve=True, throw_on_missing=False)
         )
 
