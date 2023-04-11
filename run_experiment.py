@@ -48,7 +48,7 @@ def execute(exp: Experiment,
 
     return res
 
-@hydra.main(version_base=None, config_path="./config", config_name="config")
+@hydra.main(version_base=None, config_path="./config", config_name="config_slurm")
 def main(cfg: DictConfig) -> None:
 
     # print config file
