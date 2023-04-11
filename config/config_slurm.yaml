@@ -9,6 +9,7 @@ hydra:
     params:
       environment: bernoulli_easy,bernoulli_hard
       algorithm.scaling: 0.1, 0.5, 1.0
+      experiment.seed: 1, 2, 3, 4, 5
   launcher:
     timeout_min: 4300
     cpus_per_task: 10
@@ -16,5 +17,5 @@ hydra:
     tasks_per_node: 1
     mem_gb: 400
     nodes: 1
-    submitit_folder: ./exp_sweep/${now:%Y.%m.%d}_${environment}/${now:%H%M%S}/.slurm
+    submitit_folder: ./exp_sweep/${now:%Y.%m.%d}_${environment.name}/${now:%H%M%S}/.slurm
     partition: learnlab # devlab learnlab
