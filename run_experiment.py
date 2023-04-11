@@ -1,3 +1,4 @@
+import random
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -52,6 +53,10 @@ def main(cfg: DictConfig) -> None:
 
     # print config file
     print(OmegaConf.to_yaml(cfg))
+
+    # set global seed
+    np.random.seed(cfg.experiment.seed)
+    random.seed(cfg.experiment.seed)
 
     # construct the arms and build the corresponding environment
     env = Environment([hydra.utils.instantiate(arm) for arm in cfg.environment.arms])

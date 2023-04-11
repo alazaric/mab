@@ -11,3 +11,4 @@ hydra:
     params:
       environment: bernoulli_easy,bernoulli_hard
       algorithm.scaling: 0.1, 0.5, 1.0
+      experiment.seed: 1, 2, 3, 4, 5
