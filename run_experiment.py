@@ -22,7 +22,7 @@ def execute(exp: Experiment,
 
     # structure used to store the results
     res = Result(exp, env, alg)
-    step_metrics: tp.Dict[str, float] = {}
+    step_stats: tp.Dict[str, float] = {}
 
     # number of steps of the experiment
     n_steps = exp.n_steps
@@ -39,9 +39,9 @@ def execute(exp: Experiment,
         reward = env.pull_arm(arm_to_pull)
 
         # update the internal state of the algorithm and log it
-        step_metrics.update(alg.update(t, arm_to_pull, reward))
-        wandb.log(step_metrics)
-        wandb.log({"reward": reward, "arm": arm_to_pull})
+        step_stats.update(alg.update(t, arm_to_pull, reward))
+        step_stats.update({"reward": reward, "arm": arm_to_pull})
+        wandb.log(step_stats)
 
         # store this step
         res.store(t, arm_to_pull, reward)
